@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
 
         android:text="GMT time goes here"
-        android:textSize="20dp"
+        android:textSize="16dp"
 
         app:layout_constraintBottom_toBottomOf="@+id/activity_main"
         app:layout_constraintLeft_toLeftOf="@+id/activity_main"
@@ -35,7 +35,7 @@
         android:layout_marginTop="16dp"
         android:text="PST time goes here"
 
-        android:textSize="20dp"
+        android:textSize="16dp"
         app:layout_constraintRight_toRightOf="@+id/tt_time_pst"
         app:layout_constraintTop_toBottomOf="@+id/tt_time_pst"
         tools:layout_constraintRight_creator="1"
@@ -49,7 +49,7 @@
         android:layout_marginBottom="16dp"
 
         android:text="Device time goes here"
-        android:textSize="20dp"
+        android:textSize="16dp"
 
         app:layout_constraintBottom_toTopOf="@+id/tt_time_pst"
         app:layout_constraintHorizontal_bias="0.47"
