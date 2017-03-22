@@ -35,7 +35,7 @@
         android:layout_marginTop="16dp"
         android:text="PST time goes here"
 
-        android:textSize="16dp"
+        android:textSize="32dp"
         app:layout_constraintRight_toRightOf="@+id/tt_time_pst"
         app:layout_constraintTop_toBottomOf="@+id/tt_time_pst"
         tools:layout_constraintRight_creator="1"
@@ -65,7 +65,7 @@
         android:layout_height="wrap_content"
 
         android:layout_marginTop="16dp"
-        android:text="Get Time NOW"
+        android:text="Start!"
         app:layout_constraintLeft_toLeftOf="@+id/activity_main"
         app:layout_constraintRight_toRightOf="@+id/activity_main"
         app:layout_constraintTop_toBottomOf="@+id/tt_time_gmt"
