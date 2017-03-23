@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 import butterknife.Bind;
@@ -38,11 +39,13 @@ public class Sample2Activity extends AppCompatActivity {
     private static final int COLOR_COUNT = 7;
     private static final int MAX_START_DELAY = 10000;
     private static final int MIN_START_DELAY = 2000;
+    private static final int COUNTDOWN_TICK = 25;
     private static final int[] RAINBOW_COLORS = new int[] {0xFFFF0000,
             0xFFFF7F00, 0xFFFFFF00, 0xFF00FF00, 0xFF0000FF, 0xFF4B0082, 0xFF8F00FF};
 
     private static final Handler handler = new Handler();
-    private CountDownTimer timer;
+    private CountDownTimer blinkingTimer;
+    private CountDownTimer countdownTimer;
     private int tickCount;
 
     private Camera camera;
@@ -54,6 +57,7 @@ public class Sample2Activity extends AppCompatActivity {
     @Bind(R.id.tt_time_pst) TextView timePST;
     @Bind(R.id.tt_time_device) TextView timeDeviceTime;
     @Bind(R.id.activity_main) View mainLayout;
+    @Bind(R.id.flash_on_off) CheckBox flashCheckBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +108,9 @@ public class Sample2Activity extends AppCompatActivity {
         }
         tickCount = 0;
 
-        //initFlashlight();
+        if (isFlashEnabled()) {
+            initFlashlight();
+        }
 
         final Date trueTime = TrueTimeRx.now();
         Date deviceTime = new Date();
@@ -129,12 +135,15 @@ public class Sample2Activity extends AppCompatActivity {
         long startDelay = MIN_START_DELAY + MAX_START_DELAY - (trueTime.getTime() % MAX_START_DELAY);
         Log.i("delay", "startDelay = " + startDelay);
         startCountdown(startDelay);
-        initBlinking(trueTime, startDelay);
+        scheduleBlinking(trueTime, startDelay);
     }
 
     private void startCountdown(long startDelay) {
+        if (countdownTimer != null) {
+            countdownTimer.cancel();
+        }
         timeGMT.setVisibility(View.VISIBLE);
-        new CountDownTimer(startDelay, 25) {
+        countdownTimer = new CountDownTimer(startDelay, COUNTDOWN_TICK) {
             @Override
             public void onTick(long millisUntilFinished) {
                 timeGMT.setText(String.valueOf(millisUntilFinished / 1000 + 1));
@@ -147,36 +156,43 @@ public class Sample2Activity extends AppCompatActivity {
         }.start();
     }
 
-    private void initBlinking(final Date trueTime, long startDelay) {
-        if (timer != null) {
-            timer.cancel();
+    private void scheduleBlinking(final Date trueTime, long startDelay) {
+        if (blinkingTimer != null) {
+            blinkingTimer.cancel();
         }
         handler.removeCallbacksAndMessages(null);
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 refreshBtn.setAlpha(0.2f);
-                Log.i("timer", "Start Timer : " + trueTime.getTime());
-                timer = new CountDownTimer(5000, 200) {
+                flashCheckBox.setEnabled(false);
+                Log.i("blinkingTimer", "Start Timer : " + trueTime.getTime());
+                blinkingTimer = new CountDownTimer(5000, 200) {
 
                     public void onTick(long millisUntilFinished) {
-                        //Log.i("timer", "tick " + tickCount);
+                        //Log.i("blinkingTimer", "tick " + tickCount);
                         mainLayout.setBackgroundColor(RAINBOW_COLORS[tickCount % COLOR_COUNT]);
-                        /*if (tickCount % 2 == 0) {
-                            turnOnFlash();
-                        } else {
-                            turnOffFlash();
-                        }*/
+                        if (isFlashEnabled()) {
+                            if (tickCount % 2 == 0) {
+                                turnOnFlash();
+                            } else {
+                                turnOffFlash();
+                            }
+                        }
                         tickCount++;
                     }
 
                     public void onFinish() {
+                        flashCheckBox.setEnabled(true);
                         refreshBtn.setAlpha(1f);
-                        /*turnOffFlash();
-                        if (camera != null) {
-                            camera.release();
-                            camera = null;
-                        }*/
+                        if (isFlashEnabled()) {
+                            turnOffFlash();
+                            if (camera != null) {
+                                camera.stopPreview();
+                                camera.release();
+                                camera = null;
+                            }
+                        }
                     }
                 }.start();
             }
@@ -193,6 +209,10 @@ public class Sample2Activity extends AppCompatActivity {
         return getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
     }
 
+    private boolean isFlashEnabled() {
+        return flashCheckBox.isChecked();
+    }
+
     private void initFlashlight() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 50);
@@ -203,6 +223,8 @@ public class Sample2Activity extends AppCompatActivity {
             camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
             try {
                 camera.setPreviewTexture(new SurfaceTexture(0));
+                camera.startPreview();
+                cameraParams = camera.getParameters();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -210,29 +232,29 @@ public class Sample2Activity extends AppCompatActivity {
     }
 
     private void turnOnFlash() {
-        if (!isFlashOn && (camera != null)) {
-            cameraParams = camera.getParameters();
+        if (!isFlashOn && (camera != null) && (cameraParams != null)) {
+            //cameraParams = camera.getParameters();
             cameraParams.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
             camera.setParameters(cameraParams);
-            try {
+            /*try {
                 camera.startPreview();
             } catch (Exception e) {
                 e.printStackTrace();
-            }
+            }*/
             isFlashOn = true;
         }
     }
 
     private void turnOffFlash() {
-        if (isFlashOn && (camera != null)) {
-            cameraParams = camera.getParameters();
+        if (isFlashOn && (camera != null) && (cameraParams != null)) {
+            //cameraParams = camera.getParameters();
             cameraParams.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
             camera.setParameters(cameraParams);
-            try {
+            /*try {
                 camera.stopPreview();
             } catch (Exception e) {
                 e.printStackTrace();
-            }
+            }*/
             isFlashOn = false;
         }
     }
