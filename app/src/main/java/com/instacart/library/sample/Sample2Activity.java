@@ -39,6 +39,8 @@ public class Sample2Activity extends AppCompatActivity {
     private static final int COLOR_COUNT = 7;
     private static final int MAX_START_DELAY = 10000;
     private static final int MIN_START_DELAY = 2000;
+    private static final int BLINKING_DELAY = 200;
+    private static final int BLINKING_DURATION = 5000;
     private static final int COUNTDOWN_TICK = 25;
     private static final int[] RAINBOW_COLORS = new int[] {0xFFFF0000,
             0xFFFF7F00, 0xFFFFFF00, 0xFF00FF00, 0xFF0000FF, 0xFF4B0082, 0xFF8F00FF};
@@ -79,7 +81,7 @@ public class Sample2Activity extends AppCompatActivity {
                 .withRetryCount(100)
                 .withSharedPreferences(this)
                 .withLoggingEnabled(true)
-                .initializeRx("time.google.com")
+                .initializeRx("time.apple.com")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Date>() {
@@ -167,7 +169,7 @@ public class Sample2Activity extends AppCompatActivity {
                 refreshBtn.setAlpha(0.2f);
                 flashCheckBox.setEnabled(false);
                 Log.i("blinkingTimer", "Start Timer : " + trueTime.getTime());
-                blinkingTimer = new CountDownTimer(5000, 200) {
+                blinkingTimer = new CountDownTimer(BLINKING_DURATION, BLINKING_DELAY) {
 
                     public void onTick(long millisUntilFinished) {
                         //Log.i("blinkingTimer", "tick " + tickCount);
